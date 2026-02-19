@@ -1,0 +1,134 @@
+// Firebase config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+// Admin login
+function login() {
+  const email = document.getElementById('admin-email').value;
+  const password = document.getElementById('admin-password').value;
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('main-section').classList.remove('hidden');
+      document.getElementById('admin-section').classList.remove('hidden');
+      loadAcara(); loadMedals(); loadPeserta(); loadRekod();
+    })
+    .catch(err => document.getElementById('login-msg').innerText = err.message);
+}
+
+// Load Acara & Keputusan
+function loadAcara(){
+  const acaraDiv = document.getElementById('acara-list');
+  db.ref('acara').on('value', snap=>{
+    acaraDiv.innerHTML = "";
+    const data = snap.val();
+    for(const hari in data){
+      acaraDiv.innerHTML += `<h3>${hari}</h3>`;
+      for(const ev in data[hari]){
+        const k = data[hari][ev].keputusan||{};
+        acaraDiv.innerHTML += `<p>${ev}: 1️⃣ ${k[1]||"-"} 2️⃣ ${k[2]||"-"} 3️⃣ ${k[3]||"-"}</p>`;
+      }
+    }
+  });
+}
+
+// Sekolah & Pingat
+const schools = ["Sekolah A","Sekolah B","Sekolah C","Sekolah D","Sekolah E","Sekolah F","Sekolah G","Sekolah H"];
+function loadMedals(){
+  const tbody = document.querySelector('#medal-table tbody');
+  tbody.innerHTML="";
+  schools.forEach(s=>{
+    db.ref('pingat/'+s).on('value',snap=>{
+      let data = snap.val()||{gold:0,silver:0,bronze:0};
+      let total = data.gold+data.silver+data.bronze;
+      let row = document.getElementById(s.replace(/\s/g,''));
+      if(!row){
+        row = document.createElement('tr'); row.id=s.replace(/\s/g,'');
+        row.innerHTML = `<td>${s}</td>
+          <td data-label="Emas 🥇">${data.gold}</td>
+          <td data-label="Perak 🥈">${data.silver}</td>
+          <td data-label="Gangsa 🥉">${data.bronze}</td>
+          <td data-label="Jumlah">${total}</td>
+          <td data-label="Ranking">-</td>`;
+        tbody.appendChild(row);
+      }else{
+        row.cells[1].innerText=data.gold;
+        row.cells[2].innerText=data.silver;
+        row.cells[3].innerText=data.bronze;
+        row.cells[4].innerText=total;
+      }
+      updateRanking();
+    });
+  });
+}
+
+function updateRanking(){
+  const rows = Array.from(document.querySelectorAll('#medal-table tbody tr'));
+  rows.sort((a,b)=>parseInt(b.cells[4].innerText)-parseInt(a.cells[4].innerText));
+  rows.forEach((r,i)=>r.cells[5].innerText=i+1);
+}
+
+// Admin submit keputusan
+function submitKeputusan(){
+  const hari=document.getElementById('hari').value;
+  const acara=document.getElementById('acara-nama').value;
+  const p1=document.getElementById('pemenang1').value;
+  const p2=document.getElementById('pemenang2').value;
+  const p3=document.getElementById('pemenang3').value;
+
+  db.ref(`acara/${hari}/${acara}/keputusan`).set({1:p1,2:p2,3:p3});
+  updatePingat(p1,p2,p3);
+}
+
+function updatePingat(gold,silver,bronze){
+  [[gold,'gold'],[silver,'silver'],[bronze,'bronze']].forEach(([school,type])=>{
+    const ref=db.ref(`pingat/${school}/${type}`);
+    ref.once('value').then(snap=>ref.set((snap.val()||0)+1));
+  });
+}
+
+// Peserta
+function loadPeserta(){
+  db.ref('peserta').on('value',snap=>{
+    const div=document.getElementById('peserta-list'); div.innerHTML="";
+    const data=snap.val()||{};
+    for(const s in data) div.innerHTML+=`<p>${s}: ${data[s].join(", ")}</p>`;
+  });
+}
+
+// Rekod
+function loadRekod(){
+  db.ref('rekod').on('value',snap=>{
+    const div=document.getElementById('rekod-list'); div.innerHTML="";
+    const data=snap.val()||{};
+    for(const ev in data){
+      div.innerHTML+=`<p>${ev}: ${data[ev].nama} (${data[ev].sekolah}) - ${data[ev].masa}</p>`;
+    }
+  });
+}
+
+// Submit rekod
+function submitRekod(){
+  const ev=document.getElementById('rekod-acara').value;
+  const nama=document.getElementById('rekod-nama').value;
+  const sekolah=document.getElementById('rekod-sekolah').value;
+  const masa=document.getElementById('rekod-masa').value;
+  db.ref(`rekod/${ev}`).set({nama,sekolah,masa});
+}
+
+// Export Excel
+function exportExcel(){
+  const table=document.getElementById('medal-table');
+  const wb=XLSX.utils.table_to_book(table,{sheet:"Pingat"});
+  XLSX.writeFile(wb,"Kejohanan_Sukan.xlsx");
+}
