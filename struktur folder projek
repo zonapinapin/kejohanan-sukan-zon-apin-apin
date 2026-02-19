@@ -1,0 +1,7 @@
+kejohanan-sukan-zon-apin-apin/
+│
+├─ index.html          ← Main website
+├─ style.css           ← Tema biru rasmi + mobile-friendly
+├─ script.js           ← Firebase integration + admin + live ranking
+├─ README.md           ← Info projek
+└─ assets/             ← Gambar, logo, ikon (optional)
