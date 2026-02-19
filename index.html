@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kejohanan Sukan Zon Apin Apin 💙</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<!-- Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>Kejohanan Sukan Zon Apin Apin 💙</h1>
+</header>
+
+<!-- Admin Login -->
+<section id="login-section">
+  <h2>Admin Login</h2>
+  <input type="email" id="admin-email" placeholder="Email">
+  <input type="password" id="admin-password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="login-msg"></p>
+</section>
+
+<!-- Main Website Content -->
+<section id="main-section" class="hidden">
+  <h2>Susunan Acara & Keputusan</h2>
+  <div id="acara-list"></div>
+
+  <h2>Bilangan Pingat & Ranking</h2>
+  <table id="medal-table">
+    <thead>
+      <tr>
+        <th>Sekolah</th>
+        <th>Emas 🥇</th>
+        <th>Perak 🥈</th>
+        <th>Gangsa 🥉</th>
+        <th>Jumlah</th>
+        <th>Ranking</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="exportExcel()">Export Excel</button>
+
+  <h2>Nama Peserta</h2>
+  <div id="peserta-list"></div>
+
+  <h2>Pemecah Rekod</h2>
+  <div id="rekod-list"></div>
+</section>
+
+<!-- Admin Panel -->
+<section id="admin-section" class="hidden">
+  <h2>Admin: Masukkan Keputusan Acara</h2>
+  <label>Hari:</label>
+  <select id="hari">
+    <option value="hari1">Hari 1</option>
+    <option value="hari2">Hari 2</option>
+  </select>
+  <label>Acara:</label>
+  <input type="text" id="acara-nama">
+  <label>Pemenang 1 (emas):</label>
+  <input type="text" id="pemenang1">
+  <label>Pemenang 2 (perak):</label>
+  <input type="text" id="pemenang2">
+  <label>Pemenang 3 (gangsa):</label>
+  <input type="text" id="pemenang3">
+  <button onclick="submitKeputusan()">Hantar Keputusan</button>
+
+  <h2>Masukkan Pemecah Rekod</h2>
+  <label>Acara:</label>
+  <input type="text" id="rekod-acara">
+  <label>Nama Pemecah:</label>
+  <input type="text" id="rekod-nama">
+  <label>Sekolah:</label>
+  <input type="text" id="rekod-sekolah">
+  <label>Masa / Catatan:</label>
+  <input type="text" id="rekod-masa">
+  <button onclick="submitRekod()">Hantar Rekod</button>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
